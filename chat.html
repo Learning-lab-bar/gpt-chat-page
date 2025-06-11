@@ -1,83 +1,79 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="he">
 <head>
   <meta charset="UTF-8">
-  <title>שיחה עם GPT</title>
+  <title>צ'אט GPT</title>
   <style>
     body {
-      font-family: sans-serif;
+      font-family: Arial, sans-serif;
+      margin: 10px;
       direction: rtl;
-      padding: 10px;
-      margin: 0;
-      background-color: #fafafa;
     }
     #messages {
-      min-height: 200px;
-      max-height: 300px;
-      overflow-y: auto;
       white-space: pre-wrap;
-      background: #fff;
       border: 1px solid #ccc;
       padding: 10px;
+      height: 350px;
+      overflow-y: auto;
       margin-bottom: 10px;
+      line-height: 1.6;
     }
     input[type="text"] {
-      width: 65%;
+      width: 70%;
       padding: 5px;
-      font-size: 14px;
     }
     button {
-      padding: 6px 12px;
-      font-size: 14px;
-      margin-right: 8px;
+      padding: 6px 10px;
     }
   </style>
 </head>
 <body>
-  <div id="messages"><i>השיחה תופיע כאן...</i></div>
-  <input type="text" id="userInput" placeholder="שאל את GPT...">
+  <div id="messages"></div>
+  <input type="text" id="userInput" placeholder="שאל את GPT..." />
   <button onclick="sendToGPT()">שלח</button>
 
   <script>
     let chatLog = [];
-    let transcript = "";
-
-    function updateDisplay(text) {
-      const formatted = text.replace(/\n/g, "<br>");
-      document.getElementById("messages").innerHTML = formatted;
-    }
 
     async function sendToGPT() {
       const inputField = document.getElementById("userInput");
+      const messagesDiv = document.getElementById("messages");
       const input = inputField.value.trim();
-      if (!input) return;
 
+      if (!input) return;
       inputField.value = "";
-      transcript += `את: ${input}\n`;
-      updateDisplay(transcript);
+
+      messagesDiv.textContent += `את: ${input}\n\n`;
       chatLog.push({ role: "user", content: input });
 
       try {
         const response = await fetch("https://gpt-proxy-mm3a.onrender.com/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: chatLog })
+          body: JSON.stringify({ messages: chatLog }),
         });
 
-        const data = await response.json();
-        if (!data.reply) {
-          transcript += "⚠️ שגיאה בתשובה מהשרת\n";
-          updateDisplay(transcript);
+        if (!response.ok) {
+          const errText = await response.text();
+          messagesDiv.textContent += `❌ שגיאת שרת (${response.status}): ${errText}\n\n`;
           return;
         }
 
-        transcript += `GPT: ${data.reply}\n`;
-        chatLog.push({ role: "assistant", content: data.reply });
-        updateDisplay(transcript);
+        const data = await response.json();
+
+        if (!data.reply) {
+          messagesDiv.textContent += `❌ שגיאה: לא הוחזרה תשובה מהשרת.\n\n`;
+          return;
+        }
+
+        const reply = data.reply;
+        messagesDiv.textContent += `תשובה: ${reply}\n\n`;
+        chatLog.push({ role: "assistant", content: reply });
+
+        // גלילה אוטומטית לתחתית
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
       } catch (err) {
-        transcript += `❌ שגיאת רשת: ${err.message}\n`;
-        updateDisplay(transcript);
-        console.error("שגיאת fetch:", err);
+        messagesDiv.textContent += `❌ שגיאת רשת: ${err.message}\n\n`;
       }
     }
   </script>
