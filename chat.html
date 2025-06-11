@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>שיחה עם GPT</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      direction: rtl;
+      padding: 10px;
+      margin: 0;
+      background-color: #fafafa;
+    }
+    #messages {
+      min-height: 200px;
+      max-height: 300px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    input[type="text"] {
+      width: 65%;
+      padding: 5px;
+      font-size: 14px;
+    }
+    button {
+      padding: 6px 12px;
+      font-size: 14px;
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div id="messages"><i>השיחה תופיע כאן...</i></div>
+  <input type="text" id="userInput" placeholder="שאל את GPT...">
+  <button onclick="sendToGPT()">שלח</button>
+
+  <script>
+    let chatLog = [];
+    let transcript = "";
+
+    function updateDisplay(text) {
+      const formatted = text.replace(/\n/g, "<br>");
+      document.getElementById("messages").innerHTML = formatted;
+    }
+
+    async function sendToGPT() {
+      const inputField = document.getElementById("userInput");
+      const input = inputField.value.trim();
+      if (!input) return;
+
+      inputField.value = "";
+      transcript += `את: ${input}\n`;
+      updateDisplay(transcript);
+      chatLog.push({ role: "user", content: input });
+
+      try {
+        const response = await fetch("https://gpt-proxy-mm3a.onrender.com/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages: chatLog })
+        });
+
+        const data = await response.json();
+        if (!data.reply) {
+          transcript += "⚠️ שגיאה בתשובה מהשרת\n";
+          updateDisplay(transcript);
+          return;
+        }
+
+        transcript += `GPT: ${data.reply}\n`;
+        chatLog.push({ role: "assistant", content: data.reply });
+        updateDisplay(transcript);
+      } catch (err) {
+        transcript += `❌ שגיאת רשת: ${err.message}\n`;
+        updateDisplay(transcript);
+        console.error("שגיאת fetch:", err);
+      }
+    }
+  </script>
+</body>
+</html>
