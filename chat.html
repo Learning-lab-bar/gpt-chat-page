@@ -18,9 +18,10 @@
       margin-bottom: 10px;
       line-height: 1.6;
     }
-    input[type="text"] {
+    textarea {
       width: 70%;
       padding: 5px;
+      height: 50px;
     }
     button {
       padding: 6px 10px;
@@ -29,20 +30,23 @@
 </head>
 <body>
   <div id="messages"></div>
-  <input type="text" id="userInput" placeholder="שאל את GPT..." />
+  <textarea id="userInput" placeholder="שאל את GPT..."></textarea>
   <button onclick="sendToGPT()">שלח</button>
 
   <script>
     let chatLog = [];
 
+    // שליפת מזהה נבדק מה־URL או יצירת מזהה אקראי
+    const urlParams = new URLSearchParams(window.location.search);
+    let userId = urlParams.get("userId") || "user_" + Math.random().toString(36).substring(2, 10);
+
     async function sendToGPT() {
       const inputField = document.getElementById("userInput");
       const messagesDiv = document.getElementById("messages");
       const input = inputField.value.trim();
-
       if (!input) return;
-      inputField.value = "";
 
+      inputField.value = "";
       messagesDiv.textContent += `את: ${input}\n\n`;
       chatLog.push({ role: "user", content: input });
 
@@ -60,7 +64,6 @@
         }
 
         const data = await response.json();
-
         if (!data.reply) {
           messagesDiv.textContent += `❌ שגיאה: לא הוחזרה תשובה מהשרת.\n\n`;
           return;
@@ -69,9 +72,19 @@
         const reply = data.reply;
         messagesDiv.textContent += `תשובה: ${reply}\n\n`;
         chatLog.push({ role: "assistant", content: reply });
-
-        // גלילה אוטומטית לתחתית
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+        // ✨ שליחה לגוגל דרייב עם userId
+        const fullTurn = `את: ${input}\nתשובה: ${reply}\n---\n`;
+        await fetch("https://script.google.com/macros/s/AKfycbzXUPFGM2cfKbQdgOpxEw3lEaH7E5Xs0SgPZZT7IM_mI6FFFp_7QTMPJ6kPXovnuvALkQ/exec", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text: fullTurn,
+            userId: userId
+          }),
+        });
+
       } catch (err) {
         messagesDiv.textContent += `❌ שגיאת רשת: ${err.message}\n\n`;
       }
