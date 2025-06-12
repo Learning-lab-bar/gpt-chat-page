@@ -35,10 +35,8 @@
 
   <script>
     let chatLog = [];
-
-    // שליפת מזהה נבדק מה־URL או יצירת מזהה אקראי
     const urlParams = new URLSearchParams(window.location.search);
-    let userId = urlParams.get("userId") || "user_" + Math.random().toString(36).substring(2, 10);
+    const userId = urlParams.get("userId") || "user_" + Math.random().toString(36).substring(2, 10);
 
     async function sendToGPT() {
       const inputField = document.getElementById("userInput");
@@ -64,24 +62,26 @@
         }
 
         const data = await response.json();
-        if (!data.reply) {
+        const reply = data.reply;
+
+        if (!reply) {
           messagesDiv.textContent += `❌ שגיאה: לא הוחזרה תשובה מהשרת.\n\n`;
           return;
         }
 
-        const reply = data.reply;
         messagesDiv.textContent += `תשובה: ${reply}\n\n`;
         chatLog.push({ role: "assistant", content: reply });
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
 
-        // ✨ שליחה לגוגל דרייב עם userId
+        // ✨ שמירה ל־Google Drive — הכתובת המעודכנת שלך
         const fullTurn = `את: ${input}\nתשובה: ${reply}\n---\n`;
-        await fetch("https://script.google.com/macros/s/AKfycbzXUPFGM2cfKbQdgOpxEw3lEaH7E5Xs0SgPZZT7IM_mI6FFFp_7QTMPJ6kPXovnuvALkQ/exec", {
+
+        await fetch("https://script.google.com/macros/s/AKfycbyvJ8ZNLPqKn6zCNeuVuNrTXJRX7J5OehJWZxdOjVpgVEVXareVEJQBTf4KyWEdFBSaow/exec", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            text: fullTurn,
-            userId: userId
+            participantId: userId,
+            text: fullTurn
           }),
         });
 
