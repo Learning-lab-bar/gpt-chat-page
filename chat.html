@@ -49,7 +49,7 @@
       chatLog.push({ role: "user", content: input });
 
       try {
-        // בקשה לצ'אט (שרת GPT שלך ברנדר)
+        // שליחה לשרת GPT שלך (Render)
         const response = await fetch("https://gpt-proxy-mm3a.onrender.com/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -74,15 +74,18 @@
         chatLog.push({ role: "assistant", content: reply });
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
 
-        // ✨ שליחה לגוגל דרך השרת המתווך שלך
-        const fullTurn = `את: ${input}\nתשובה: ${reply}\n---\n`;
+        // שליחה לגוגל דרייב דרך השרת המתווך שלך
+        const fullChatText = chatLog.map(entry => {
+          const role = entry.role === "user" ? "את" : "תשובה";
+          return `${role}: ${entry.content}`;
+        }).join("\n\n");
 
         await fetch("https://gpt-proxy-mm3a.onrender.com/save-chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             participantId: userId,
-            text: fullTurn
+            text: fullChatText
           }),
         });
 
