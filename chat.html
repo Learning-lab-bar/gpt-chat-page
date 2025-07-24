@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="he">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>צ'אט GPT</title>
+  <title>Chat GPT</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 10px;
-      direction: rtl;
+      direction: ltr;
     }
     #messages {
       white-space: pre-wrap;
@@ -45,7 +45,7 @@
       if (!input) return;
 
       inputField.value = "";
-      messagesDiv.textContent += `את: ${input}\n\n`;
+      messagesDiv.textContent += `You: ${input}\n\n`;
       chatLog.push({ role: "user", content: input });
 
       try {
@@ -60,7 +60,7 @@
 
         if (!response.ok) {
           const errText = await response.text();
-          messagesDiv.textContent += `❌ שגיאת שרת (${response.status}): ${errText}\n\n`;
+          messagesDiv.textContent += `❌ Server error (${response.status}): ${errText}\n\n`;
           return;
         }
 
@@ -68,16 +68,16 @@
         const reply = data.reply;
 
         if (!reply) {
-          messagesDiv.textContent += `❌ שגיאה: לא הוחזרה תשובה מהשרת.\n\n`;
+          messagesDiv.textContent += `❌ Error: No reply received from the server.\n\n`;
           return;
         }
 
-        messagesDiv.textContent += `תשובה: ${reply}\n\n`;
+        messagesDiv.textContent += `GPT: ${reply}\n\n`;
         chatLog.push({ role: "assistant", content: reply });
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
 
       } catch (err) {
-        messagesDiv.textContent += `❌ שגיאת רשת: ${err.message}\n\n`;
+        messagesDiv.textContent += `❌ Network error: ${err.message}\n\n`;
       }
     }
   </script>
