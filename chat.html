@@ -36,7 +36,7 @@
   <script>
     let chatLog = [];
     const urlParams = new URLSearchParams(window.location.search);
-    const userId = urlParams.get("userId") || "user_" + Math.random().toString(36).substring(2, 10);
+    const userId = urlParams.get("userId");  // ✅ מזהה אמיתי מקוולטריקס בלבד
 
     async function sendToGPT() {
       const inputField = document.getElementById("userInput");
